@@ -62,9 +62,7 @@ tasks {
             relocate("it.unimi.dsi", "${rootProject.group}.${rootProject.name}.it.unimi.dsi")
         }
 
-        minimize {
-            exclude(dependency("com.github.monun:.*:.*"))
-        }
+        minimize()
 
         doFirst {
             println("relocate = $relocate")
