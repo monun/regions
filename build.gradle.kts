@@ -62,8 +62,6 @@ tasks {
             relocate("it.unimi.dsi", "${rootProject.group}.${rootProject.name}.it.unimi.dsi")
         }
 
-        minimize()
-
         doFirst {
             println("relocate = $relocate")
         }
