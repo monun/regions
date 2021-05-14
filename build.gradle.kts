@@ -69,19 +69,21 @@ tasks {
     build {
         dependsOn(shadowJar)
     }
-    create<Copy>("paper") {
+    create<Copy>("copyToServer") {
         from(shadowJar)
-        var dest = file(".paper/plugins")
-        // if plugin.jar exists in plugins change dest to plugins/update
-        if (File(dest, shadowJar.get().archiveFileName.get()).exists()) dest = File(dest, "update")
-        into(dest)
+        val plugins = File(rootDir, ".server/plugins")
+        if (File(plugins, shadowJar.get().archiveFileName.get()).exists()) {
+            into(File(plugins, "update"))
+        } else {
+            into(plugins)
+        }
     }
     create<DefaultTask>("setupWorkspace") {
         doLast {
             val versions = arrayOf(
                 "1.16.5"
             )
-            val buildtoolsDir = file(".buildtools/")
+            val buildtoolsDir = file(".buildtools")
             val buildtools = File(buildtoolsDir, "BuildTools.jar")
 
             val maven = File(System.getProperty("user.home"), ".m2/repository/org/spigotmc/spigot/")
