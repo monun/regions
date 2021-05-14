@@ -20,14 +20,16 @@ import com.github.monun.kommand.KommandContext
 import com.github.monun.kommand.KommandDispatcherBuilder
 import com.github.monun.kommand.argument.KommandArgument
 import com.github.monun.kommand.argument.KommandArgument.Companion.TOKEN
+import com.github.monun.kommand.argument.map
 import com.github.monun.kommand.argument.string
-import com.github.monun.kommand.argument.suggestions
+import com.github.monun.kommand.argument.suggest
 import com.github.monun.kommand.sendFeedback
 import com.github.monun.regions.api.*
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
+import java.util.*
 
 object AreaArgument : KommandArgument<Area> {
     override val parseFailMessage: String
@@ -50,7 +52,7 @@ object AreaArgument : KommandArgument<Area> {
         return null
     }
 
-    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+    override fun suggest(context: KommandContext, target: String): Collection<String> {
         val worlds = Regions.manager.worlds
         val regions = Regions.manager.regions
         val list = ArrayList<String>()
@@ -75,32 +77,6 @@ object AreaArgument : KommandArgument<Area> {
     }
 }
 
-object ProtectionArgument : KommandArgument<Protection> {
-    override val parseFailMessage: String
-        get() = "$TOKEN 보호를 찾지 못했습니다."
-
-    override fun parse(context: KommandContext, param: String): Protection? {
-        return Protection.getByKey(param)
-    }
-
-    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-        return Protection.values().asList().suggestions(target) { it.key }
-    }
-}
-
-object PermissionArgument : KommandArgument<Permission> {
-    override val parseFailMessage: String
-        get() = "$TOKEN 권한을 찾지 못했습니다."
-
-    override fun parse(context: KommandContext, param: String): Permission? {
-        return Permission.getByKey(param)
-    }
-
-    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-        return Permission.values().asList().suggestions(target) { it.key }
-    }
-}
-
 class RoleArgument(
     val areaArgumentName: String,
     val withPublicRole: Boolean
@@ -119,12 +95,12 @@ class RoleArgument(
         }
     }
 
-    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+    override fun suggest(context: KommandContext, target: String): Collection<String> {
         val area = context.parseOrNullArgument<Area>(areaArgumentName)
 
         if (area != null) {
             if (!withPublicRole)
-                return area.roles.suggestions(target) { it.name }
+                return area.roles.suggest(target) { it.name }
 
             val roles = area.roles
             val list = ArrayList<String>(roles.count() + 1)
@@ -134,7 +110,7 @@ class RoleArgument(
                 list += role.name
             }
 
-            return list.suggestions(target)
+            return list.suggest(target)
         }
 
         return emptyList()
@@ -155,8 +131,8 @@ object UserArgument : KommandArgument<User> {
         return null
     }
 
-    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-        return Bukkit.getOnlinePlayers().suggestions(target) { it.name }
+    override fun suggest(context: KommandContext, target: String): Collection<String> {
+        return Bukkit.getOnlinePlayers().suggest(target) { it.name }
     }
 }
 
@@ -172,10 +148,10 @@ class MemberArgument(
         return area.getMember(param)
     }
 
-    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+    override fun suggest(context: KommandContext, target: String): Collection<String> {
         val area = context.parseOrNullArgument<Area>(areaArgumentName) ?: return emptyList()
 
-        return area.members.suggestions(target) { it.user.name }
+        return area.members.suggest(target) { it.user.name }
     }
 }
 
@@ -190,11 +166,18 @@ fun role(areaArgumentName: String, withPublicRole: Boolean): RoleArgument {
 object AreaCommands {
     fun register(builder: KommandDispatcherBuilder) {
         builder.register("area") {
+            val protectionArg = map(
+                Protection.values()
+                    .associateByTo(TreeMap<String, Protection>(String.CASE_INSENSITIVE_ORDER)) { it.key })
+            val permissionArg = map(
+                Permission.values().associateByTo(TreeMap<String, Permission>(String.CASE_INSENSITIVE_ORDER)) { it.key }
+            )
+
             then("modify") {
                 then("area" to AreaArgument) {
                     then("protection") {
                         then("add") {
-                            then("protection" to ProtectionArgument) {
+                            then("protection" to protectionArg) {
                                 executes {
                                     addProtection(
                                         it.sender,
@@ -205,7 +188,7 @@ object AreaCommands {
                             }
                         }
                         then("remove") {
-                            then("protection" to ProtectionArgument) {
+                            then("protection" to protectionArg) {
                                 executes {
                                     removeProtection(
                                         it.sender,
@@ -238,7 +221,7 @@ object AreaCommands {
                         then("permission") {
                             then("role" to role("area", true)) {
                                 then("add") {
-                                    then("perm" to PermissionArgument) {
+                                    then("perm" to permissionArg) {
                                         executes {
                                             addPermissionToRole(
                                                 it.sender,
@@ -249,7 +232,7 @@ object AreaCommands {
                                     }
                                 }
                                 then("remove") {
-                                    then("perm" to PermissionArgument) {
+                                    then("perm" to permissionArg) {
                                         executes {
                                             removePermissionFromRole(
                                                 it.sender,

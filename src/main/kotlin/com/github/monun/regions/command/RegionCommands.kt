@@ -16,13 +16,11 @@
 
 package com.github.monun.regions.command
 
-import com.github.monun.kommand.KommandContext
 import com.github.monun.kommand.KommandDispatcherBuilder
 import com.github.monun.kommand.KommandSyntaxException
-import com.github.monun.kommand.argument.KommandArgument
 import com.github.monun.kommand.argument.integer
+import com.github.monun.kommand.argument.map
 import com.github.monun.kommand.argument.string
-import com.github.monun.kommand.argument.suggestions
 import com.github.monun.kommand.sendFeedback
 import com.github.monun.regions.api.Region
 import com.github.monun.regions.api.RegionBox
@@ -35,22 +33,19 @@ import org.bukkit.entity.Player
 import kotlin.math.min
 import com.sk89q.worldedit.regions.Region as WorldEditRegion
 
-object RegionArgument : KommandArgument<Region> {
-    override val parseFailMessage: String
-        get() = "${KommandArgument.TOKEN} 구역을 찾지 못했습니다."
-
-    override fun parse(context: KommandContext, param: String): Region? {
-        return Regions.manager.getRegion(param)
-    }
-
-    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-        return Regions.manager.regions.suggestions(target) { it.name }
-    }
-}
-
 object RegionCommands {
     fun register(builder: KommandDispatcherBuilder) {
         builder.register("region") {
+            val manager = Regions.manager
+            val regionArg = map(
+                {
+                    manager.getRegion(it)
+                },
+                {
+                    manager.regions.map { it.name }
+                }
+            )
+
             then("add") {
                 require {
                     this is Player
@@ -62,14 +57,14 @@ object RegionCommands {
                 }
             }
             then("remove") {
-                then("region" to RegionArgument) {
+                then("region" to regionArg) {
                     executes {
                         removeRegion(it.sender, it.parseArgument("region"))
                     }
                 }
             }
             then("relocate") {
-                then("region" to RegionArgument) {
+                then("region" to regionArg) {
                     require {
                         this is Player
                     }
@@ -79,8 +74,8 @@ object RegionCommands {
                 }
             }
             then("parent") {
-                then("region" to RegionArgument) {
-                    then("parent" to RegionArgument) {
+                then("region" to regionArg) {
+                    then("parent" to regionArg) {
                         executes {
                             addParent(it.sender, it.parseArgument("region"), it.parseArgument("parent"))
                         }
@@ -115,7 +110,7 @@ object RegionCommands {
             it.save()
             sender.sendFeedback("[${it.name}] 구역을 생성했습니다.")
         }.onFailure {
-            sender.sendFeedback("${ChatColor.RED}구역을 생성하지 못했습니다. ${it.message}")
+            sender.sendFeedback("${ChatColor.WHITE}구역을 생성하지 못했습니다. ${it.message}")
         }
     }
 
