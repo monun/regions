@@ -274,9 +274,7 @@ abstract class AreaImpl(
         //save protections
         config.createSection(CFG_PROTECTIONS).let { section ->
             Protection.values().forEach { protection ->
-                if (section.getBoolean(protection.key)) {
-                    _protections.add(protection)
-                }
+                section.set(protection.key, protection in _protections)
             }
         }
 
