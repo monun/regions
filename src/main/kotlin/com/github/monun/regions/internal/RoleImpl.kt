@@ -18,9 +18,6 @@ package com.github.monun.regions.internal
 
 import com.github.monun.regions.api.Permission
 import com.github.monun.regions.api.Role
-import com.github.monun.regions.api.warning
-import com.github.monun.regions.toEnumList
-import com.github.monun.regions.toStringList
 import com.github.monun.regions.util.UpstreamReference
 import org.bukkit.configuration.ConfigurationSection
 import java.util.*
@@ -63,13 +60,21 @@ class RoleImpl(
     }
 
     internal fun save(config: ConfigurationSection) {
-        config[CFG_PERMISSIONS] = _permissions.toStringList()
+        val section = config.createSection(CFG_PERMISSIONS)
+
+        for (permission in Permission.values()) {
+            section.set(permission.key, permission in _permissions)
+        }
     }
 
     internal fun load(config: ConfigurationSection) {
-        _permissions.addAll(config.getStringList(CFG_PERMISSIONS).toEnumList({ Permission.getByKey(it) }) { name ->
-            warning("Unknown role in [$name] at ${parent.type} [${parent.name}]")
-        })
+        config.getConfigurationSection(CFG_PERMISSIONS)?.let { section ->
+            Permission.values().forEach { permission ->
+                if (section.getBoolean(permission.key)) {
+                    _permissions.add(permission)
+                }
+            }
+        }
     }
 
     override fun delete() {

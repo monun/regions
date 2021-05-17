@@ -19,29 +19,6 @@ package com.github.monun.regions
 import com.github.monun.regions.api.RegionBox
 import org.bukkit.configuration.ConfigurationSection
 
-fun <E : Enum<E>> Iterable<String>.toEnumList(
-    transform: (String) -> E?,
-    onNotFound: ((name: String) -> Unit)? = null
-): List<E> {
-    val list = ArrayList<E>(count())
-
-    loop@ for (name in this) {
-        val value = kotlin.runCatching { transform(name) }.getOrNull()
-
-        if (value != null) {
-            list += value
-        } else {
-            onNotFound?.runCatching { invoke(name) }
-        }
-    }
-
-    return list
-}
-
-fun <E : Enum<E>> Iterable<E>.toStringList(transform: (E) -> String = { it.toString() }): List<String> {
-    return map(transform)
-}
-
 fun ConfigurationSection.getBox(path: String): RegionBox {
     val config = getSection(path)
     val min = config.getSection("min")

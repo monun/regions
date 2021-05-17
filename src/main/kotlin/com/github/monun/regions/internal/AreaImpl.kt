@@ -17,8 +17,6 @@
 package com.github.monun.regions.internal
 
 import com.github.monun.regions.api.*
-import com.github.monun.regions.toEnumList
-import com.github.monun.regions.toStringList
 import com.google.common.collect.ImmutableList
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
@@ -274,7 +272,13 @@ abstract class AreaImpl(
 
     override fun save(config: ConfigurationSection) {
         //save protections
-        config[CFG_PROTECTIONS] = _protections.toStringList()
+        config.createSection(CFG_PROTECTIONS).let { section ->
+            Protection.values().forEach { protection ->
+                if (section.getBoolean(protection.key)) {
+                    _protections.add(protection)
+                }
+            }
+        }
 
         //save public role
         _publicRole.save(config.createSection(CFG_PUBLIC_ROLE))
@@ -296,9 +300,13 @@ abstract class AreaImpl(
 
     internal fun load(config: ConfigurationSection) {
         //load protections
-        config.getStringList(CFG_PROTECTIONS).toEnumList({ Protection.getByKey(it) }) { name ->
-            warning("Unknown protection [$name] at $type [$name]")
-        }.let { _protections.addAll(it) }
+        config.getConfigurationSection(CFG_PROTECTIONS)?.let { section ->
+            Protection.values().forEach { protection ->
+                if (section.getBoolean(protection.key)) {
+                    _protections.add(protection)
+                }
+            }
+        }
 
         //load public role
         config.getConfigurationSection(CFG_PUBLIC_ROLE)?.let { publicRoleSection ->
