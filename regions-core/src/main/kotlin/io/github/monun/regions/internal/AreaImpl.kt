@@ -82,7 +82,7 @@ abstract class AreaImpl(
         return _rolesByName[name]
     }
 
-    override fun getOrRegisterNewRole(name: String): Role {
+    override fun getOrRegisterNewRole(name: String): RoleImpl {
         if (name == PUBLIC_ROLE_NAME) return publicRole
 
         return _rolesByName.computeIfAbsent(name) {
@@ -91,7 +91,7 @@ abstract class AreaImpl(
         }
     }
 
-    override fun registerNewRole(name: String): Role {
+    override fun registerNewRole(name: String): RoleImpl {
         require(name != PUBLIC_ROLE_NAME && name !in _rolesByName) { "Name is already in use" }
 
         return RoleImpl(this, name).also {
@@ -100,7 +100,7 @@ abstract class AreaImpl(
         }
     }
 
-    override fun removeRole(name: String): Role? {
+    override fun removeRole(name: String): RoleImpl? {
         require(name != PUBLIC_ROLE_NAME) { "Cannot remove $PUBLIC_ROLE_NAME" }
 
         return _rolesByName.remove(name)?.also { role ->
