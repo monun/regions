@@ -2,6 +2,7 @@
 
 plugins=(
   'https://github.com/monun/auto-reloader/releases/latest/download/AutoReloader.jar'
+  'https://media.forgecdn.net/files/3559/523/worldedit-bukkit-7.2.8.jar'
 )
 
 script=$(basename "$0")

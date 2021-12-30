@@ -19,41 +19,38 @@ package io.github.monun.regions.plugin
 import io.github.monun.kommand.kommand
 import io.github.monun.regions.api.RegionsInternal
 import io.github.monun.regions.command.AreaCommands
-import io.github.monun.regions.command.RegionCommands
-import io.github.monun.regions.command.RegionsArgument
 import io.github.monun.regions.internal.RegionManagerImpl
 import org.bukkit.plugin.java.JavaPlugin
 
 /**
  * @author Nemo
  */
-class RegionPlugin : JavaPlugin() {
+class RegionsPlugin : JavaPlugin() {
     lateinit var regionManager: RegionManagerImpl
         private set
 
     override fun onEnable() {
         regionManager = RegionManagerImpl(this).also {
-            RegionsInternal.registerManager(it)
+            RegionsInternal.register(it)
         }
 
-        server.apply {
-            pluginManager.registerEvents(EventListener(), this@RegionPlugin)
-            scheduler.runTaskTimer(this@RegionPlugin, SchedulerTask(regionManager), 0L, 1L)
-        }
-
+        setupAdapters()
         setupCommands()
     }
 
-    private fun setupCommands() {
-        RegionsArgument.manager = regionManager
-
-        kommand {
-            AreaCommands.register(this)
-            RegionCommands.register(this, regionManager)
+    private fun setupAdapters() {
+        server.apply {
+            pluginManager.registerEvents(EventListener(), this@RegionsPlugin)
+            scheduler.runTaskTimer(this@RegionsPlugin, SchedulerTask(regionManager), 0L, 1L)
         }
+    }
+
+    private fun setupCommands() {
+        kommand { AreaCommands.register(this, regionManager) }
     }
 
     override fun onDisable() {
         regionManager.saveAll()
+        RegionsInternal.unregister()
     }
 }

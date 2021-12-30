@@ -32,6 +32,8 @@ interface RegionManager {
 
     val worlds: List<RegionWorld>
 
+    val worldMap: Map<String, RegionWorld>
+
     val regions: List<Region>
 
     val regionMap: Map<String, Region>

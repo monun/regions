@@ -33,9 +33,9 @@ interface Permissible {
     fun hasPermissions(permissions: Collection<Permission>): Boolean
 }
 
-enum class Permission(val key: String) : Indexable {
-    OWNERSHIP("ownership"),
-    ADMINISTRATION("administration"),
+enum class Permission(val key: String, val isRank: Boolean = false) : Indexable {
+    OWNERSHIP("ownership", true),
+    ADMINISTRATION("administration", true),
     ENTRANCE("entrance"),
     EXIT("exit"),
     INTERACTION("interaction"),

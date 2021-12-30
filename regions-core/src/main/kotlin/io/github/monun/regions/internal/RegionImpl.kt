@@ -223,6 +223,13 @@ class RegionImpl(
         }
     }
 
+    override fun init() {
+        parent.let { world ->
+            addProtections(world.protections)
+            publicRole.addPermissions(world.publicRole.permissions)
+        }
+    }
+
     override fun save(): Boolean {
         checkState()
 

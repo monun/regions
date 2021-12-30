@@ -77,13 +77,14 @@ abstract class AreaImpl(
     }
 
     override fun getRole(name: String): RoleImpl? {
-        if (name == PUBLIC_ROLE_NAME)
-            return publicRole
+        if (name == PUBLIC_ROLE_NAME) return publicRole
 
         return _rolesByName[name]
     }
 
     override fun getOrRegisterNewRole(name: String): Role {
+        if (name == PUBLIC_ROLE_NAME) return publicRole
+
         return _rolesByName.computeIfAbsent(name) {
             setMustBeSave()
             RoleImpl(this, it)
@@ -238,7 +239,7 @@ abstract class AreaImpl(
     }
 
     companion object {
-        private const val PUBLIC_ROLE_NAME = "@everyone"
+        private const val PUBLIC_ROLE_NAME = "everyone"
 
         private const val CFG_PROTECTIONS = "protections"
         private const val CFG_PUBLIC_ROLE = "public-role"
@@ -253,6 +254,8 @@ abstract class AreaImpl(
     internal fun setMustBeSave() {
         mustBeSave = true
     }
+
+    internal abstract fun init()
 
     override fun save(): Boolean {
         if (!mustBeSave) return false

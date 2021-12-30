@@ -567,7 +567,6 @@ class EventListener : Listener {
         val pistonArea = piston.regionArea
         val pistonProtection = pistonArea.hasProtection(Protection.PISTON)
 
-
         if (pistonProtection) {
             for (block in event.blocks) {
                 if (block.regionArea !== pistonArea || block.getRelative(direction).regionArea !== pistonArea) {

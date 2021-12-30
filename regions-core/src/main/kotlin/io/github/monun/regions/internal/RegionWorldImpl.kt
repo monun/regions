@@ -16,12 +16,9 @@
 
 package io.github.monun.regions.internal
 
-import io.github.monun.regions.api.Area
-import io.github.monun.regions.api.Region
-import io.github.monun.regions.api.RegionBox
-import io.github.monun.regions.api.RegionWorld
 import io.github.monun.regions.util.ChunkCoordIntPair
 import com.google.common.collect.ImmutableList
+import io.github.monun.regions.api.*
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.bukkit.World
 import org.bukkit.configuration.file.YamlConfiguration
@@ -63,7 +60,7 @@ class RegionWorldImpl(
 
         if (chunk == null) {
             chunk = RegionChunkImpl(this, chunkX, chunkZ).also {
-                chunks.put(key, it)
+                chunks[key] = it
             }
         }
 
@@ -100,6 +97,10 @@ class RegionWorldImpl(
         }
 
         return overlaps
+    }
+
+    override fun init() {
+        publicRole.addPermissions(Permission.values().filter { !it.isRank })
     }
 
     companion object {

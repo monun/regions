@@ -17,7 +17,7 @@
 package io.github.monun.regions.internal
 
 import com.destroystokyo.paper.profile.PlayerProfile
-import io.github.monun.regions.plugin.RegionPlugin
+import io.github.monun.regions.plugin.RegionsPlugin
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.MapMaker
@@ -37,7 +37,7 @@ import java.io.File
 import java.util.*
 import java.util.logging.Logger
 
-class RegionManagerImpl(plugin: RegionPlugin) : RegionManager {
+class RegionManagerImpl(plugin: RegionsPlugin) : RegionManager {
     override val logger: Logger = plugin.logger
 
     override val cachedUsers: List<User>
@@ -48,6 +48,9 @@ class RegionManagerImpl(plugin: RegionPlugin) : RegionManager {
 
     override val worlds: List<RegionWorld>
         get() = ImmutableList.copyOf(_worldsByName.values)
+
+    override val worldMap: Map<String, RegionWorld>
+        get() = ImmutableMap.copyOf(_worldsByName)
 
     override val regions: List<Region>
         get() = ImmutableList.copyOf(_regionsByName.values)
@@ -70,7 +73,7 @@ class RegionManagerImpl(plugin: RegionPlugin) : RegionManager {
     init {
         val dataFolder = plugin.dataFolder
         worldsFolder = File(dataFolder, "worlds").apply { mkdirs() }
-        regionsFolder = File(dataFolder, "io/github/monun/regions").apply { mkdirs() }
+        regionsFolder = File(dataFolder, "regions").apply { mkdirs() }
 
         loadUsers()
         loadWorlds()
@@ -181,6 +184,7 @@ class RegionManagerImpl(plugin: RegionPlugin) : RegionManager {
     internal fun getOrRegisterRegionWorld(name: String): RegionWorldImpl {
         return _worldsByName.computeIfAbsent(name) {
             RegionWorldImpl(this, it).apply {
+                init()
                 setMustBeSave()
             }
         }
@@ -193,6 +197,7 @@ class RegionManagerImpl(plugin: RegionPlugin) : RegionManager {
         val worldImpl = world.toImpl()
 
         return RegionImpl(this, name, worldImpl, box).apply {
+            init()
             _regionsByName[name] = this
             worldImpl.placeRegion(this)
             setMustBeSave()

@@ -16,31 +16,94 @@
 
 package io.github.monun.regions.api
 
-import io.github.monun.regions.api.Regions.manager
+import com.destroystokyo.paper.profile.PlayerProfile
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.block.Block
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
+import java.lang.IllegalArgumentException
+import java.util.*
+import java.util.logging.Logger
 
-object Regions : RegionManager by manager {
-    internal var instance: RegionManager? = null
+object Regions : RegionManager {
+    internal var internalInstance: RegionManager? = null
         set(value) {
-            require(field == null) { "Cannot redefine instance" }
+            if (value != null && field != null) throw IllegalArgumentException("Cannot redefine internal instance")
+
             field = value
         }
 
-    private val manager
-        get() = requireNotNull(instance)
+    val instance: RegionManager
+        get() = requireNotNull(internalInstance)
+
+    override val logger: Logger
+        get() = instance.logger
+    override val cachedUsers: List<User>
+        get() = instance.cachedUsers
+    override val onlineUsers: Collection<User>
+        get() = instance.onlineUsers
+    override val worlds: List<RegionWorld>
+        get() = instance.worlds
+    override val worldMap: Map<String, RegionWorld>
+        get() = instance.worldMap
+    override val regions: List<Region>
+        get() = instance.regions
+    override val regionMap: Map<String, Region>
+        get() = instance.regionMap
+
+    override fun findUser(uniqueId: UUID): User? {
+        return instance.findUser(uniqueId)
+    }
+
+    override fun getUser(profile: PlayerProfile): User {
+        return instance.getUser(profile)
+    }
+
+    override fun getUser(player: Player): User? {
+        return instance.getUser(player)
+    }
+
+    override fun getRegionWorld(bukkitWorld: World): RegionWorld? {
+        return instance.getRegionWorld(bukkitWorld)
+    }
+
+    override fun getRegionWorld(name: String): RegionWorld? {
+        return instance.getRegionWorld(name)
+    }
+
+    override fun getRegion(name: String): Region? {
+        return instance.getRegion(name)
+    }
+
+    override fun registerNewRegion(name: String, world: RegionWorld, box: RegionBox): Region {
+        return instance.registerNewRegion(name, world, box)
+    }
+
+    override fun removeRegion(name: String): Region? {
+        return instance.removeRegion(name)
+    }
+
+    override fun regionAt(bukkitWorld: World, x: Int, y: Int, z: Int): Region? {
+        return instance.regionAt(bukkitWorld, x, y, z)
+    }
+
+    override fun areaAt(bukkitWorld: World, x: Int, y: Int, z: Int): Area? {
+        return instance.areaAt(bukkitWorld, x, y, z)
+    }
+
+    override fun saveAll() {
+        return instance.saveAll()
+    }
 }
 
 object RegionsInternal {
-    fun registerManager(instance: RegionManager) {
-        Regions.instance = instance
+    fun register(instance: RegionManager) {
+        Regions.internalInstance = instance
     }
 
-    fun unregisterManager() {
-        Regions.instance = null
+    fun unregister() {
+        Regions.internalInstance = null
     }
 }
 

@@ -111,12 +111,12 @@ interface Area {
 
     fun save(config: ConfigurationSection)
 
-    enum class Type(private val toString: String) {
-        WORLD("world"),
-        REGION("region");
+    enum class Type(private val key: String, val displayName: String) {
+        WORLD("world", "세계"),
+        REGION("region", "구역");
 
         override fun toString(): String {
-            return toString
+            return displayName
         }
     }
 }
